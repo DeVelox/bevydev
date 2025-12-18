@@ -51,7 +51,8 @@ COPY --from=bevy-cli /cargo/bin/bevy* /cargo/bin
 COPY --from=bevy-cli /cargo/bin/just /cargo/bin
 
 RUN set -eux && \
-    rustup component add rustc-codegen-cranelift rust-std-wasm32-unknown-unknown && \
+    rustup component add rustc-codegen-cranelift && \
+    rustup target add wasm32-unknown-unknown && \
     chmod -R a+w $RUSTUP_HOME $CARGO_HOME
 
 WORKDIR /app
@@ -97,7 +98,7 @@ RUN set -eux && \
         -c rust-src \
         -c rust-analyzer \
         -c rustc-codegen-cranelift \
-        -c rust-std-wasm32-unknown-unknown && \
+        -t wasm32-unknown-unknown && \
     chmod -R a+w $RUSTUP_HOME $CARGO_HOME && \
     dnf5 clean all && \
     rm -rf /tmp/* || true && \
