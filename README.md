@@ -8,7 +8,7 @@ For development a more modern Fedora image is used due to Sniper causing segfaul
 
 [Helix](https://helix-editor.com/) is included as the editor of choice with the Fedora image.  
 Latest versions of bevy_cli, bevy_lint, and dioxus-cli are included with the image.  
-Rust toolchain is nightly-2025-10-31 with cranelift codegen and mold linker preinstalled.  
+Rust toolchain is `nightly-2025-12-11` with cranelift codegen and mold linker preinstalled.
 
 The script is designed to work with podman and projects created using the [bevy_cli](https://github.com/TheBevyFlock/bevy_cli).  
 It can be modified to work with docker or projects using cargo directly, but this is not officially supported.

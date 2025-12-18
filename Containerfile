@@ -1,7 +1,10 @@
+ARG RUST_VERSION=nightly-2025-12-11
+
 # Setup base image with Rust and Cargo
 FROM registry.gitlab.steamos.cloud/steamrt/sniper/sdk:latest AS rustup-sniper
 
-ENV RUST_VERSION=nightly-2025-12-11 \
+ARG RUST_VERSION
+ENV RUST_VERSION=$RUST_VERSION \
     RUSTUP_HOME=/rustup \
     CARGO_HOME=/cargo \
     PATH=/cargo/bin:$PATH \
@@ -48,7 +51,7 @@ COPY --from=bevy-cli /cargo/bin/bevy* /cargo/bin
 COPY --from=bevy-cli /cargo/bin/just /cargo/bin
 
 RUN set -eux && \
-    rustup component add rustc-codegen-cranelift wasm-unknown-unknown && \
+    rustup component add rustc-codegen-cranelift rust-std-wasm32-unknown-unknown && \
     chmod -R a+w $RUSTUP_HOME $CARGO_HOME
 
 WORKDIR /app
@@ -71,7 +74,8 @@ CMD ["hx"]
 # Setup a modern development image based on Fedora
 FROM quay.io/fedora/fedora:latest AS rustup-fedora
 
-ENV RUST_VERSION=nightly-2025-12-11 \
+ARG RUST_VERSION
+ENV RUST_VERSION=$RUST_VERSION \
     RUSTUP_HOME=/rustup \
     CARGO_HOME=/cargo \
     PATH=/cargo/bin:$PATH \
@@ -90,7 +94,7 @@ RUN set -eux && \
         -c rust-src \
         -c rust-analyzer \
         -c rustc-codegen-cranelift \
-        -c wasm-unknown-unknown && \
+        -c rust-std-wasm32-unknown-unknown && \
     chmod -R a+w $RUSTUP_HOME $CARGO_HOME && \
     dnf5 clean all && \
     rm -rf /tmp/* || true && \
