@@ -62,9 +62,9 @@ CMD ["bevy", "build", "--release"]
 # Add helix to the image for development
 FROM bevydev-sniper AS bevydev-helix
 
+COPY --from=helix /helix/target/opt/hx /cargo/bin
 COPY --from=helix /helix/runtime $HOME/.config/helix/runtime
 COPY ctx/helix-config.toml $HOME/.config/helix/config.toml
-COPY --from=helix /helix/target/opt/hx /cargo/bin
 
 RUN set -eux && \
     rustup component add rust-analyzer rust-src && \
@@ -87,8 +87,8 @@ RUN set -eux && \
     dnf5 install -y --setopt=install_weak_deps=False \
     just helix clang mold \
     mesa-dri-drivers mesa-vulkan-drivers \
-    mesa-libGL mesa-libEGL vulkan-loader \
-    alsa-lib-devel systemd-devel openssl-devel \
+    mesa-libGL mesa-libEGL vulkan-loader mesa-libgbm \
+    pipewire-alsa alsa-lib-devel systemd-devel openssl-devel \
     wayland-devel libX11-devel libxkbcommon-devel && \
     url="https://static.rust-lang.org/rustup/dist/x86_64-unknown-linux-gnu/rustup-init" && \
     curl -sSfL "$url" -o rustup-init && \
@@ -121,7 +121,8 @@ COPY --from=bevy-cli-fedora /cargo/bin/dx /cargo/bin
 COPY --from=bevy-cli-fedora /cargo/bin/bevy* /cargo/bin
 COPY ctx/helix-config.toml $HOME/.config/helix/config.toml
 
-RUN mkdir -p $HOME/.config/helix && \
+RUN echo "ALL ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/00-rootless && \
+    mkdir -p $HOME/.config/helix && \
     chmod -R a+w $HOME
 
 WORKDIR /app
