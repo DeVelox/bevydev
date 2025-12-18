@@ -10,19 +10,19 @@ For development a more modern Fedora image is used due to Sniper causing segfaul
 Latest versions of bevy_cli, bevy_lint, and dioxus-cli are included with the image.  
 Rust toolchain is `nightly-2025-12-11` with cranelift codegen and mold linker preinstalled.
 
-The script is designed to work with podman and projects created using the [bevy_cli](https://github.com/TheBevyFlock/bevy_cli).  
-It can be modified to work with docker or projects using cargo directly, but this is not officially supported.
+The script has been tested with Podman and projects created using the [bevy_cli](https://github.com/TheBevyFlock/bevy_cli).  
+Docker can be forced with `RUNTIME=docker` if both Podman and Docker are installed.
 
 ### Usage:
 The most basic and recommended way to use this is to get a release build for the Steam Deck:
-```bash
+```console
 curl -O https://raw.githubusercontent.com/DeVelox/bevydev/main/bevy.sh
 chmod +x bevy.sh
 ./bevy.sh build
 ```
 
 Alternatively, other commands can be used for development:
-```bash
+```console
 Usage:
   ./bevy.sh [command]
 
@@ -40,7 +40,7 @@ Advanced:
 ```
 
 If you wish to build the images locally or make other modifications feel free to fork or clone:
-```bash
+```console
 git clone https://github.com/DeVelox/bevydev.git
 cd bevydev
 podman build -t bevydev-sniper . # for the sniper image

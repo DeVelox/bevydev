@@ -1,5 +1,47 @@
 #!/bin/bash
 
+RUNTIME="${RUNTIME:-}"
+
+if [[ -z "$RUNTIME" ]]; then
+    if command -v podman &>/dev/null; then
+        RUNTIME="podman"
+    elif command -v docker &>/dev/null; then
+        RUNTIME="docker"
+    else
+        echo "Please install Podman or Docker." >&2
+        exit 1
+    fi
+fi
+
+if ! command -v "$RUNTIME" &>/dev/null; then
+    echo "Please install Podman or Docker." >&2
+    exit 1
+fi
+
+if command -v nvidia-container-runtime &> /dev/null; then
+    if [[ $RUNTIME == "podman" ]]; then
+        gpu=(
+            --device /dev/nvidia0
+            --device /dev/nvidiactl
+            --device /dev/nvidia-uvm
+            --device /dev/nvidia-modeset
+            --device nvidia.com/gpu=all
+        )
+    elif [[ $RUNTIME == "docker" ]]; then
+        gpu=(
+            --gpus=all
+        )
+    fi
+elif command -v nvidia-smi &> /dev/null; then
+    echo "Please install NVIDIA Container Toolkit." >&2
+    exit 1
+fi
+
+gpu+=(
+    --device /dev/dri
+    --security-opt=label=disable
+)
+
 args=(
     --userns=keep-id
     -v /etc/localtime:/etc/localtime:ro
@@ -8,30 +50,7 @@ args=(
     -v .:/app:z
 )
 
-gpu=(
-    --security-opt=label=disable
-    --security-opt=apparmor=unconfined
-)
-
-if command -v nvidia-container-runtime &> /dev/null; then
-    gpu+=(
-        --device /dev/nvidia0
-        --device /dev/nvidiactl
-        --device /dev/nvidia-uvm
-        --device /dev/nvidia-modeset
-        --device nvidia.com/gpu=all
-    )
-elif command -v nvidia-smi &> /dev/null; then
-    echo "Please install NVIDIA Container Toolkit."
-    exit 1
-else
-    gpu+=(
-        --device /dev/dri
-    )
-fi
-
 display=(
-    --device /dev/snd
     -e DISPLAY="$DISPLAY"
     -v /tmp/.X11-unix:/tmp.X11-unix:ro
     -e WAYLAND_DISPLAY="$WAYLAND_DISPLAY"
@@ -53,27 +72,27 @@ new=(
 
 function build() {
     check_image "bevydev-sniper"
-    podman run --rm "${args[@]}" bevydev-sniper bevy build --release
+    "$RUNTIME" run --rm "${args[@]}" bevydev-sniper bevy build --release
 }
 
 function run() {
     check_image "bevydev-fedora"
-    podman run --rm "${args[@]}" "${gpu[@]}" "${display[@]}" bevydev-fedora bevy run
+    "$RUNTIME" run --rm "${args[@]}" "${gpu[@]}" "${display[@]}" bevydev-fedora bevy run
 }
 
 function dx() {
     check_image "bevydev-fedora"
-    podman run --rm "${args[@]}" "${gpu[@]}" "${display[@]}" "${dioxus[@]}" bevydev-fedora dx serve --hot-patch --features "bevy/hotpatching"
+    "$RUNTIME" run --rm "${args[@]}" "${gpu[@]}" "${display[@]}" "${dioxus[@]}" bevydev-fedora dx serve --hot-patch --features "bevy/hotpatching"
 }
 
 function hx() {
     check_image "bevydev-fedora"
-    podman run --rm -it "${args[@]}" "${helix[@]}" bevydev-fedora hx
+    "$RUNTIME" run --rm -it "${args[@]}" "${helix[@]}" bevydev-fedora hx
 }
 
 function ci() {
     check_image "bevydev-fedora"
-    podman run --rm -i "${args[@]}" bevydev-fedora bash <<-EOF
+    "$RUNTIME" run --rm -i "${args[@]}" bevydev-fedora bash <<-EOF
 				cargo fmt --all -- --check
 				cargo clippy --locked --workspace --all-targets --profile ci --all-features
 				bevy lint --locked --workspace --all-targets --profile ci --all-features
@@ -83,12 +102,12 @@ function ci() {
 
 function bash() {
     check_image "$1"
-    podman run --rm -it "${args[@]}" "${gpu[@]}" "${display[@]}" "$1" bash
+    "$RUNTIME" run --rm -it "${args[@]}" "${gpu[@]}" "${display[@]}" "$1" bash
 }
 
 function new() {
     check_image "bevydev-fedora"
-    podman run --rm -it "${args[@]}" "${new[@]}" bevydev-fedora bevy new -t="${2}" "$1"
+    "$RUNTIME" run --rm -it "${args[@]}" "${new[@]}" bevydev-fedora bevy new -t="${2}" "$1"
 }
 
 function update() {
@@ -111,34 +130,36 @@ function update_script() {
             chmod +x "$SCRIPT_PATH"
             echo "Script updated."
         else
-            echo "Script update failed."
+            echo "Script update failed." >&2
             rm -f "$SCRIPT_TMP"
             return 1
         fi
     else
-        echo "Script download failed."
+        echo "Script download failed." >&2
         rm -f "$SCRIPT_TMP"
         return 1
     fi
 }
 
 function update_image() {
-    if podman image exists "$1"; then
-        if podman pull -q ghcr.io/develox/"$1"; then
+    if "$RUNTIME" image exists "$1"; then
+        if "$RUNTIME" pull -q ghcr.io/develox/"$1"; then
             echo "$1 updated."
         else
-            echo "$1 update failed."
+            echo "$1 update failed." >&2
+            return 1
         fi
     fi
 }
 
 function check_image() {
-    if ! podman image exists "$1"; then
+    if ! "$RUNTIME" image exists "$1"; then
         echo "Image doesn't exist, downloading..."
-        if podman pull -q ghcr.io/develox/"$1"; then
+        if "$RUNTIME" pull -q ghcr.io/develox/"$1"; then
             echo "$1 downloaded."
         else
-            echo "$1 download failed."
+            echo "$1 download failed." >&2
+            return 1
         fi
     fi
 }
