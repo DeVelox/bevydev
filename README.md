@@ -21,30 +21,28 @@ chmod +x bevy.sh
 ./bevy.sh build
 ```
 
-Alternatively, helix can be used for development:
+Alternatively, other commands can be used for development:
 ```bash
-./bevy.sh hx
-```
+Usage:
+  ./bevy.sh [command]
 
-And the app can be launched on systems with Wayland:
-```bash
-./bevy.sh run
-```
+Commands:
+  update  updates the script and containers
+  build   builds a release for Steam Deck
+  run     runs the app with dev profile
+  dx      runs the app with hot patching
+  hx      runs the helix editor
+  ci      linting and checks
 
-Or if hot-patching is desired:
-```bash
-./bevy.sh dx
-```
-
-Finally, this will run the same set of CI checks that the [bevy_new_2d](https://github.com/TheBevyFlock/bevy_new_2d/tree/main) template uses:
-```bash
-./bevy.sh ci
+Advanced:
+  bash [image]
+  new <app_name> [template_name]
 ```
 
 If you wish to build the images locally or make other modifications feel free to fork or clone:
 ```bash
 git clone https://github.com/DeVelox/bevydev.git
 cd bevydev
-podman build -t bevydev . # for the sniper image
+podman build -t bevydev-sniper . # for the sniper image
 podman build --target bevydev-fedora -t bevydev-fedora .
 ```
