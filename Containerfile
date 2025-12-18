@@ -84,8 +84,11 @@ ENV RUST_VERSION=$RUST_VERSION \
 
 RUN set -eux && \
     dnf5 install -y --setopt=install_weak_deps=False \
-    just helix clang mold mesa-libGL mesa-libEGL vulkan-loader openssl-devel \
-    libX11-devel alsa-lib-devel systemd-devel wayland-devel libxkbcommon-devel && \
+    just helix clang mold \
+    mesa-dri-drivers mesa-vulkan-drivers \
+    mesa-libGL mesa-libEGL vulkan-loader \
+    alsa-lib-devel systemd-devel openssl-devel \
+    wayland-devel libX11-devel libxkbcommon-devel && \
     url="https://static.rust-lang.org/rustup/dist/x86_64-unknown-linux-gnu/rustup-init" && \
     curl -sSfL "$url" -o rustup-init && \
     chmod +x rustup-init && \

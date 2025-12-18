@@ -11,16 +11,20 @@ args=(
 if command -v nvidia-container-runtime &> /dev/null; then
     args+=(
         --device nvidia.com/gpu=all
-        --security-opt=label=disable
-        --security-opt=apparmor=unconfined
     )
 elif command -v nvidia-smi &> /dev/null; then
     echo "Please install NVIDIA Container Toolkit."
     exit 1
+else
+    args+=(
+        --device /dev/dri:/dev/dri
+    )
 fi
 
 wayland=(
     -v /dev:/dev:rslave
+    --security-opt=label=disable
+    --security-opt=apparmor=unconfined
     -e WAYLAND_DISPLAY="$WAYLAND_DISPLAY"
     -e XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR"
     -v "$XDG_RUNTIME_DIR":"$XDG_RUNTIME_DIR":ro
