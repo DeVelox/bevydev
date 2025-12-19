@@ -82,7 +82,7 @@ function run() {
 
 function dx() {
     check_image "bevydev-fedora"
-    "$RUNTIME" run --rm "${args[@]}" "${gpu[@]}" "${display[@]}" "${dioxus[@]}" bevydev-fedora dx serve --hot-patch --features "bevy/hotpatching"
+    "$RUNTIME" run --rm -it "${args[@]}" "${gpu[@]}" "${display[@]}" "${dioxus[@]}" bevydev-fedora dx serve --hot-patch --features "bevy/hotpatching"
 }
 
 function hx() {
