@@ -73,7 +73,7 @@ RUN set -eux && \
 CMD ["hx"]
 
 # Setup a modern development image based on Fedora
-FROM quay.io/fedora/fedora:latest AS rustup-fedora
+FROM quay.io/fedora/fedora-minimal:latest AS rustup-fedora
 
 ARG RUST_VERSION
 ENV RUST_VERSION=$RUST_VERSION \
@@ -85,7 +85,7 @@ ENV RUST_VERSION=$RUST_VERSION \
 
 RUN set -eux && \
     dnf5 install -y --setopt=install_weak_deps=False \
-    just helix clang mold \
+    sudo just helix clang mold lldb lld \
     mesa-dri-drivers mesa-vulkan-drivers \
     mesa-libGL mesa-libEGL vulkan-loader mesa-libgbm \
     pipewire-alsa alsa-lib-devel systemd-devel openssl-devel \
