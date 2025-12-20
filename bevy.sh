@@ -21,7 +21,6 @@ fi
 if command -v nvidia-container-runtime &> /dev/null; then
     if [[ $RUNTIME == "podman" ]]; then
         gpu=(
-            --device /dev/nvidia0
             --device /dev/nvidiactl
             --device /dev/nvidia-uvm
             --device /dev/nvidia-modeset
@@ -42,14 +41,6 @@ gpu+=(
     --security-opt=label=disable
 )
 
-args=(
-    --userns=keep-id
-    -v /etc/localtime:/etc/localtime:ro
-    -v cargo-registry:/cargo/registry
-    -v cargo-git:/cargo/git
-    -v .:/app:z
-)
-
 display=(
     -e DISPLAY="$DISPLAY"
     -v /tmp/.X11-unix:/tmp.X11-unix:ro
@@ -58,15 +49,17 @@ display=(
     -v "$XDG_RUNTIME_DIR":"$XDG_RUNTIME_DIR":ro
 )
 
-helix=(
+args=(
+    --userns=keep-id
+    -v /etc/localtime:/etc/localtime:ro
+    -v cargo-registry:/cargo/registry
+    -v cargo-git:/cargo/git
+    -v .:/app:z
+)
+
+args+=(
     -e COLORTERM="$COLORTERM"
-)
-
-dioxus=(
     -e BEVY_ASSET_ROOT="."
-)
-
-new=(
     -e USER="$USER"
 )
 
@@ -82,12 +75,12 @@ function run() {
 
 function dx() {
     check_image "bevydev-fedora"
-    "$RUNTIME" run --rm -it "${args[@]}" "${gpu[@]}" "${display[@]}" "${dioxus[@]}" bevydev-fedora dx serve --hot-patch --features "bevy/hotpatching"
+    "$RUNTIME" run --rm -it "${args[@]}" "${gpu[@]}" "${display[@]}" bevydev-fedora dx serve --hot-patch --features "bevy/hotpatching"
 }
 
 function hx() {
     check_image "bevydev-fedora"
-    "$RUNTIME" run --rm -it "${args[@]}" "${helix[@]}" bevydev-fedora hx
+    "$RUNTIME" run --rm -it "${args[@]}" bevydev-fedora hx
 }
 
 function ci() {
@@ -107,7 +100,7 @@ function bash() {
 
 function new() {
     check_image "bevydev-fedora"
-    "$RUNTIME" run --rm -it "${args[@]}" "${new[@]}" bevydev-fedora bevy new -t="${2}" "$1"
+    "$RUNTIME" run --rm -it "${args[@]}" bevydev-fedora bevy new -t="${2}" "$1"
 }
 
 function update() {
