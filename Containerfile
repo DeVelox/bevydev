@@ -89,7 +89,8 @@ RUN set -eux && \
     mesa-dri-drivers mesa-vulkan-drivers \
     mesa-libGL mesa-libEGL vulkan-loader mesa-libgbm \
     pipewire-alsa alsa-lib-devel systemd-devel openssl-devel \
-    wayland-devel libX11-devel libxkbcommon-devel && \
+    wayland-devel libX11-devel libxkbcommon-devel \
+    libXcursor libXi libxkbcommon-x11 && \
     url="https://static.rust-lang.org/rustup/dist/x86_64-unknown-linux-gnu/rustup-init" && \
     curl -sSfL "$url" -o rustup-init && \
     chmod +x rustup-init && \
