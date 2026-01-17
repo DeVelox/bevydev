@@ -43,7 +43,7 @@ gpu+=(
 
 display=(
     -e DISPLAY="$DISPLAY"
-    -v /tmp/.X11-unix:/tmp.X11-unix:ro
+    -v /tmp/.X11-unix:/tmp/.X11-unix:ro
     -e WAYLAND_DISPLAY="$WAYLAND_DISPLAY"
     -e XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR"
     -v "$XDG_RUNTIME_DIR":"$XDG_RUNTIME_DIR":ro
@@ -54,7 +54,7 @@ args=(
     -v /etc/localtime:/etc/localtime:ro
     -v cargo-registry:/cargo/registry
     -v cargo-git:/cargo/git
-    -v .:/app:z
+    -v $PWD:/app:z
 )
 
 args+=(
