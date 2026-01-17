@@ -18,37 +18,6 @@ if ! command -v "$RUNTIME" &>/dev/null; then
     exit 1
 fi
 
-if command -v nvidia-container-runtime &> /dev/null; then
-    if [[ $RUNTIME == "podman" ]]; then
-        gpu=(
-            --device /dev/nvidiactl
-            --device /dev/nvidia-uvm
-            --device /dev/nvidia-modeset
-            --device nvidia.com/gpu=all
-        )
-    elif [[ $RUNTIME == "docker" ]]; then
-        gpu=(
-            --gpus=all
-        )
-    fi
-elif command -v nvidia-smi &> /dev/null; then
-    echo "Please install NVIDIA Container Toolkit." >&2
-    exit 1
-fi
-
-gpu+=(
-    --device /dev/dri
-    --security-opt=label=disable
-)
-
-display=(
-    -e DISPLAY="$DISPLAY"
-    -v /tmp/.X11-unix:/tmp/.X11-unix:ro
-    -e WAYLAND_DISPLAY="$WAYLAND_DISPLAY"
-    -e XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR"
-    -v "$XDG_RUNTIME_DIR":"$XDG_RUNTIME_DIR":ro
-)
-
 args=(
     --userns=keep-id
     -v /etc/localtime:/etc/localtime:ro
@@ -62,6 +31,49 @@ args+=(
     -e BEVY_ASSET_ROOT="."
     -e USER="$USER"
 )
+
+display=(
+    -e DISPLAY="$DISPLAY"
+    -v /tmp/.X11-unix:/tmp/.X11-unix:ro
+    -e WAYLAND_DISPLAY="$WAYLAND_DISPLAY"
+    -e XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR"
+    -v "$XDG_RUNTIME_DIR":"$XDG_RUNTIME_DIR":ro
+)
+
+gpu=(
+    --security-opt=label=disable
+)
+
+if command -v nvidia-container-runtime &> /dev/null; then
+    if [[ $RUNTIME == "podman" ]]; then
+        gpu+=(
+            --device /dev/nvidiactl
+            --device /dev/nvidia-uvm
+            --device /dev/nvidia-modeset
+            --device nvidia.com/gpu=all
+        )
+    elif [[ $RUNTIME == "docker" ]]; then
+        gpu+=(
+            --gpus=all
+        )
+    fi
+elif command -v nvidia-smi &> /dev/null; then
+    echo "Please install NVIDIA Container Toolkit." >&2
+    exit 1
+fi
+
+if [[ -c "/dev/dxg" ]]; then
+    gpu+=(
+        --device /dev/dxg
+    )
+    display+=(
+        -v /mnt/wslg/runtime-dir/wayland-0:"$XDG_RUNTIME_DIR"/wayland-0:ro
+    )
+else
+    gpu+=(
+        --device /dev/dri
+    )
+fi
 
 function build() {
     check_image "bevydev-sniper"
